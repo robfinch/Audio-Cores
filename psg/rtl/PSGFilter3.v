@@ -2,7 +2,7 @@
 `timescale 1ns / 1ps
 // ============================================================================
 //        __
-//   \\__/ o\    (C) 2007-2017  Robert Finch, Waterloo
+//   \\__/ o\    (C) 2007-2025  Robert Finch, Waterloo
 //    \  __ /    All rights reserved.
 //     \/_//     robfinch<remove>@finitron.ca
 //       ||
@@ -39,11 +39,11 @@
 //
 //============================================================================
 //
-module PSGFilter3(rst, clk, clk50, wr, adr, din, i, crd, o);
+module PSGFilter3(rst, clk, clk100, wr, adr, din, i, crd, o);
 parameter pTaps = 31;
 input rst;
 input clk;                  // bus clock
-input clk50;                // 50MHz reference
+input clk100;                // 100MHz reference
 input wr;
 input [4:0] adr;
 input [12:0] din;
@@ -72,7 +72,7 @@ end
 
 // Sample rate counter
 wire ce = scnt==crd;
-always @(posedge clk50)
+always @(posedge clk100)
 if (rst)
     scnt <= 16'd0;
 else begin
@@ -82,7 +82,7 @@ else begin
         scnt <= scnt + 16'd1;
 end
 
-always @(posedge clk50)
+always @(posedge clk100)
 if (ce)
     cnt <= 5'd0;
 else if (cnt < pTaps)
@@ -97,7 +97,7 @@ always @(posedge clk)
 
 // shift taps
 // Note: infer a dsr by NOT resetting the registers
-always @(posedge clk50)
+always @(posedge clk100)
     if (ce) begin
         tap[0] <= i;
         for (n = 1; n < pTaps; n = n + 1)
@@ -106,7 +106,7 @@ always @(posedge clk50)
 
 wire [33:0] mult = coeff[cnt[3:0]] * tap[cnt[3:0]];
 
-always @(posedge clk50)
+always @(posedge clk100)
     if (rst)
         acc <= 0;
     else if (ce)
@@ -114,7 +114,7 @@ always @(posedge clk50)
     else if (cnt < pTaps)
         acc <= sgn[cnt[3:0]] ? acc - mult : acc + mult;
 
-always @(posedge clk50)
+always @(posedge clk100)
     if (rst)
         o <= 0;
     else if (ce)
